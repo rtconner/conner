@@ -1,0 +1,367 @@
+<?php
+
+namespace web;
+
+use FrameworkException;
+use cache;
+
+/**
+ * Throw a 404
+ */
+function do_404($type='html') {
+	switch($type) {
+		case 'text':
+			header('Content-Type: text/plain; charset='.strtolower(ENCODING));
+			break;
+		case 'xml':
+  			header('Content-Type: text/xml; charset='.strtolower(ENCODING));
+			break;
+		case 'json':
+			header('Content-Type: application/json; charset='.strtolower(ENCODING));
+			break;
+		case 'html':
+		default:
+  			header('Content-Type: text/html; charset='.strtolower(ENCODING));
+			break;
+	}
+
+	header("HTTP/1.0 404 Not Found");
+
+	if($type == 'html') {
+		echo '404 Error Page NOT FOUND';
+	}
+
+	die;
+}
+
+/**
+ * Include and run an element and it's loader
+ * @param $path string
+ * @param $params variables to pass into element
+ * @param $options
+ *   pass [false]|true parent elements pass any parameters to children elements
+ *   layout string|[false] use a layout file for this element
+ */
+function elem($path, $params=array(), $options=array()) {
+	if(!is_array($path)) {	$path = explode('/', $path); }
+
+	$ret = false;
+	$options = array_merge(array(
+		'layout'=>false,
+		'cache'=>false,
+		'cacheKey'=>'',
+	), $options);
+
+	if($options['cache']) {
+		$cacheKey = 'Elements.'.KEY.'.'.implode(DS,$path).'.'.$options['cacheKey'];
+		$ret = cache\file($cacheKey, null, (int) $options['cache']);
+	}
+
+	$elemFile = ELEMENTS.DS.implode(DS,$path).'.ctp';
+
+	$loadData = array();
+
+	global $WEB_ELEM_LEVEL, $WEB_ELEM_PARAMS;
+	if(empty($WEB_ELEM_LEVEL)) {
+		$WEB_ELEM_LEVEL = 0;
+	}
+	if(empty($WEB_ELEM_PARAMS)) {
+		$WEB_ELEM_PARAMS = array($WEB_ELEM_LEVEL=>array());
+	}
+	$WEB_ELEM_LEVEL++;
+
+	try {
+		$params = elem_loader($path, $params);
+	} catch (FrameworkException $e) {
+
+	}
+
+	if(array_key_exists($WEB_ELEM_LEVEL-1, $WEB_ELEM_PARAMS)) {
+		$params = array_merge($WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL-1], $params);
+	}
+
+	if(!empty($options['pass'])) {
+		$WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL] = $params;
+	}
+
+	if(file_exists($elemFile)) {
+		global $WEB_GLOBAL_PARAMS;
+		if(!empty($WEB_GLOBAL_PARAMS)) {
+			$params = array_merge($WEB_GLOBAL_PARAMS, $params);
+		}
+
+        if(empty($options['layout'])) {
+        	ob_start();
+    		elem_file($elemFile, $params);
+        	$ret = ob_get_clean();
+        } else {
+        	ob_start();
+    		elem_file($elemFile, $params);
+        	$ret = elem_layout($options['layout'], ob_get_clean(), $params);
+        }
+
+		$WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL] = array();
+	    $WEB_ELEM_LEVEL--;
+    } else {
+    	throw new FrameworkException('Element "'.$elemFile.' Not Found');
+    }
+
+	if($options['cache']) {
+		cache\file($cacheKey, $ret, (int) $options['cache']);
+	}
+
+    return $ret;
+}
+
+/**
+ * Runs the element loader file
+ */
+function elem_loader() {
+	$__params = null;
+	$__path = func_get_arg(0);
+	if(func_num_args() > 1) {
+		$__params = func_get_arg(1);
+	}
+	if(!is_array($__path)) { $__path = explode('/', $__path); }
+
+	if(is_array($__params)) {
+	    extract($__params);
+	}
+
+	$__loadFile = LOADERS.DS.implode(DS, $__path).'.php';
+
+    if(file_exists($__loadFile)) {
+		$data = include $__loadFile;
+
+		if(is_array($data)) {
+			$__params = array_merge($__params, $data);
+		}
+    } else {
+		throw new FrameworkException('Loader Not Found : '.$__loadFile);
+    }
+
+    return $__params;
+}
+
+/**
+ * Run an element file
+ */
+function elem_file($___file, $___params) {
+	if(is_array($___params)) {
+	    extract($___params);
+	}
+
+	if(!file_exists($___file)) {
+    	throw new FrameworkException('Element File "'.$___file.'" Does Not Exist');
+	}
+
+	return include $___file;
+}
+
+/**
+ * Wrap a block of html with a layout
+ */
+function elem_layout($name, $content, $params) {
+	if(!is_array($params)) {
+		$params = array();
+	}
+
+	global $WEB_GLOBAL_PARAMS;
+	if(!empty($WEB_GLOBAL_PARAMS)) {
+		$params = array_merge($WEB_GLOBAL_PARAMS, $params);
+	}
+
+	$file = LAYOUTS.DS.$name.'.ctp';
+
+	if(!file_exists($file)) {
+    	throw new FrameworkException('Layout "'.$file.'" Does Not Exist');
+	}
+
+	ob_start();
+
+	$params['content_for_layout'] = $content;
+	elem_file($file, $params);
+
+	return ob_get_clean();
+}
+
+/**
+ * @param $message string
+ * @param $url string result of a url() call, true to redirect to current url
+ * @param $type string|bool 'success', 'error' or other string to use in the flash type
+ */
+function flash($message=null, $url=null, $type=false) {
+	if(is_null($message)) {
+		$ret = @$_SESSION['FRAMEWORK_FLASH'];
+		unset($_SESSION['FRAMEWORK_FLASH']);
+		return $ret;
+	}
+
+	if(is_bool($type)) {
+		if($message === true) {
+			$message = $type ? __('Error when saving data') : __('Data has been saved');
+		}
+		$type = $type ? 'error' : 'success';
+	}
+
+	if($url === true) {
+		$url = url();
+	}
+
+	$_SESSION['FRAMEWORK_FLASH'] = array('message'=>$message, 'type'=>$type);
+
+	if($url !== null && $url !== false) {
+		redirect($url);
+	}
+}
+
+/**
+ * Send redirection header to browser. This does not "auto-route" URL for you,
+ * likely you will always want to use web\redirect(web\url('route'));
+ */
+function redirect($url) {
+	if(function_exists('session_write_close')) {
+		session_write_close();
+	}
+
+	if(empty($url)) {
+		$url = '/';
+	}
+
+	header('Location: '.$url);
+	exit();
+}
+
+/**
+ * Is user trying to save data? Also can auto trim GET/POST data
+ * @param $options array
+ *   trim [true]|false trim all post fields
+ *   action string if set, only return true if '_action' is this string
+ * @return bool
+ */
+function saving($options=array()) {
+	if(empty($_POST)) { return false; }
+
+	$saving = (!empty($_POST) || !empty($_FILES));
+
+	$options = array_merge(array(
+		'trim'=>true,
+	), $options);
+
+	// todo: check $_SERVER['HTTP_REFERER'] is same domain as self;
+
+	if(array_key_exists('action', $options)) {
+		$action = vars('_action', null);
+		unset($_POST['_action']);
+		unset($_GET['_action']);
+
+		$saving = $saving && ($action == $options['action']);
+	}
+
+	if($options['trim']) {
+		array_walk_recursive($_POST, 'trim');
+	}
+
+	if(!empty($_FILES)) {
+		foreach($_FILES as $name => $data) {
+			$_POST[$name] = $data;
+		}
+	}
+
+	return $saving;
+}
+
+/**
+ * Set a variable available for user on all layouts and elements
+ */
+function set($key, $value) {
+	global $WEB_GLOBAL_PARAMS;
+	$WEB_GLOBAL_PARAMS[$key] = $value;
+}
+
+/**
+ * Return url string
+ * Examples
+ *  url('/')
+ *  url('/cars');
+ *  url('/cars/view', 234);
+ *  url('edit', 234);
+ *  url('/img/test.gif');
+ * @return string URL
+ */
+function url() {
+	$args = func_get_args();
+
+	if(empty($args)) {
+		$args = array(URI);
+	}
+
+	$base = $args[0];
+
+	$location = strpos($base, '/');
+
+	if($location===0) {
+		if($base == '/') {
+			$path = '/';
+		} else {
+			$path = implode('/', $args);
+		}
+	} else {
+		$uri = URI;
+		$uriParams = explode('/', $uri);
+		$path = '/'.$uriParams[1].'/'.implode('/', $args);
+	}
+
+	return SELF_URL.$path;
+}
+
+/**
+ * Full url with domain
+ */
+function urlf() {
+	$args = func_get_args();
+	return HTTP_HOST.call_user_func_array('url', $args);
+}
+
+/**
+ * Full SSL URL
+ */
+function urls() {
+	$args = func_get_args();
+	return HTTPS_HOST.call_user_func_array('url', $args);
+}
+
+/**
+ * Indiscriminantly get a variable passed from browser
+ * by a cookie, or post, or get (in that order)
+ * @author Robert Conner <rtconner@gmail.com>
+ */
+function vars($name=null, $default=null) {
+	if(is_null($name)) {
+		return array_merge($_GET, $_POST);
+	} elseif(isset($_POST[$name]))
+		return $_POST[$name];
+	elseif(isset($_GET[$name]))
+		return $_GET[$name];
+	elseif(isset($_COOKIE[$name]))
+		return $_COOKIE[$name];
+	else
+		return $default;
+}
+
+/**
+ * Sends a header with an error string, meant to be used in ajax functionality
+ */
+function ajax_error($errorStr) {
+	header("HTTP/1.0 418 ".$errorStr);
+	exit;
+}
+
+/**
+ * Is this an ajax request
+ */
+function is_ajax() {
+	if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+		return true;
+	}
+}
