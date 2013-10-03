@@ -1,8 +1,17 @@
 <?php
 /**
- * It is not intended that you edit this file. Please change settings in etc folder config.php or local.php or bootstrap.php
+ * Conner PHP Framework
+ *
+ * Licensed under The MIT License
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     2013 Robert Conner <rtconner@gmail.com>
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 
+/**
+ * It is not intended that you edit this file. Please change settings in etc folder config.php or local.php or bootstrap.php
+ */
 define('CONNER_START_MEMORY', memory_get_usage());
 define('CONNER_START_MICROTIME', (float)substr(microtime(), 0, 10));
 
