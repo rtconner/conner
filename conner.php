@@ -14,6 +14,7 @@
  */
 define('CONNER_START_MEMORY', memory_get_usage());
 define('CONNER_START_MICROTIME', (float)substr(microtime(), 0, 10));
+define('CONNER_ROOT', realpath(dirname(__FILE__)));
 
 $IS_CLI = (PHP_SAPI === 'cli');
 define('IS_CLI', $IS_CLI);
@@ -201,9 +202,9 @@ function h($text, $ENT_QUOTES=ENT_QUOTES, $charset=null) {
 function ip_address() {
 	global $CONNER_IP_ADDRESS;
 	if($CONNER_IP_ADDRESS) {
-		return $CONNER_IP_ADDRESS;	
+		return $CONNER_IP_ADDRESS;
 	}
-	
+
 	if(IS_CLI) {
 		return '127.0.0.1';
 	} else {
@@ -220,10 +221,12 @@ function lib($name) {
 		require_once(LIB.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.DS.$name.'.php')) {
 		require_once(LIB.DS.$name.DS.$name.'.php');
-	} elseif(file_exists(LIB.DS.'framework'.DS.'lib'.DS.$name.'.php')) {
-		require_once(LIB.DS.'framework'.DS.'lib'.DS.$name.'.php');
+	} elseif(file_exists(CONNER_ROOT.DS.'src'.DS.'lib'.DS.$name.'.php')) {
+		require_once(CONNER_ROOT.DS.'src'.DS.'lib'.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.'.phar')) {
 		require_once(LIB.DS.$name.'.phar');
+	} else {
+		throw new Exception('Count Not Find Library "'.$name.'"');
 	}
 }
 
@@ -235,7 +238,7 @@ function log_file($string, $logFile='default') {
 	if(!strlen($logFile)) {
 		throw new FrameworkException('Invalid Logfile "'.$tmp.'.log"');
 	}
-	
+
 	$log_file = TMP.DS.'log'.DS.(Inflector::slug($logFile)).'.log';
 	@mkdir(dirname($log_file), 0777, true);
 	file_put_contents($log_file, $string."\n", FILE_APPEND | LOCK_EX);
@@ -289,12 +292,12 @@ function m($name, $flavour=null) {
  */
 function script_exec($command) {
 	$path = ROOT.DS.'scripts';
-	
+
 	chdir($path);
 	if(substr(php_uname(), 0, 7) == "Windows"){
-		pclose(popen("start /b php $command", "r"));   
+		pclose(popen("start /b php $command", "r"));
 	} else {
-		exec("php $command > /dev/null &");   
+		exec("php $command > /dev/null &");
 	}
 }
 
@@ -506,7 +509,7 @@ if(defined('DEBUG') && DEBUG) {
 			include(EHANDLERS.DS.implode(DS, $pieces).'.php');
 			exit;
 		}
-		
+
 		web\do_404();
 	}
 
@@ -518,7 +521,7 @@ if(defined('DEBUG') && DEBUG) {
 			include(EHANDLERS.DS.implode(DS, $pieces).'.php');
 			exit;
 		}
-		
+
 		web\do_404();
 	}
 }
