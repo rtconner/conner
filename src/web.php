@@ -216,6 +216,36 @@ function flash($message=null, $url=null, $type=false) {
 }
 
 /**
+ * Check if the user agent is a bot
+ */
+function is_bot(){
+	if(IS_CLI || !isset($_SERVER['HTTP_USER_AGENT'])) {
+		return false;
+	}
+	$agent = $_SERVER['HTTP_USER_AGENT'];
+
+	if(preg_match('/bot|crawl|slurp|spider/i', $agent)) {
+		return true;
+	}
+
+	$botlist = array("Teoma", "alexa", "froogle", "Gigabot", "inktomi",
+		"looksmart", "URL_Spider_SQL", "Firefly", "NationalDirectory",
+		"Ask Jeeves", "TECNOSEEK", "InfoSeek", "WebFindBot", "girafabot",
+		"crawler", "www.galaxy.com", "Googlebot", "Scooter", "Slurp",
+		"msnbot", "appie", "FAST", "WebBug", "Spade", "ZyBorg", "rabaz",
+		"Baiduspider", "Feedfetcher-Google", "TechnoratiSnoop", "Rankivabot",
+		"Mediapartners-Google", "Sogou web spider", "WebAlta Crawler","TweetmemeBot",
+		"Butterfly","Twitturls","Me.dium","Twiceler");
+
+	foreach($botlist as $bot){
+		if(strpos($agent, $bot)!==false)
+		return true;	// Is a bot
+	}
+
+	return false;	// Not a bot
+}
+
+/**
  * Send redirection header to browser. This does not "auto-route" URL for you,
  * likely you will always want to use web\redirect(web\url('route'));
  */
