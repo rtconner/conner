@@ -59,32 +59,33 @@ function elem($path, $params=array(), $options=array()) {
 
 	$elemFile = ELEMENTS.DS.implode(DS,$path).'.ctp';
 
-	$loadData = array();
-
-	global $WEB_ELEM_LEVEL, $WEB_ELEM_PARAMS;
-	if(empty($WEB_ELEM_LEVEL)) {
-		$WEB_ELEM_LEVEL = 0;
-	}
-	if(empty($WEB_ELEM_PARAMS)) {
-		$WEB_ELEM_PARAMS = array($WEB_ELEM_LEVEL=>array());
-	}
-	$WEB_ELEM_LEVEL++;
-
-	try {
-		$params = elem_loader($path, $params);
-	} catch (FrameworkException $e) {
-
-	}
-
-	if(array_key_exists($WEB_ELEM_LEVEL-1, $WEB_ELEM_PARAMS)) {
-		$params = array_merge($WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL-1], $params);
-	}
-
-	if(!empty($options['pass'])) {
-		$WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL] = $params;
-	}
-
 	if(file_exists($elemFile)) {
+
+		$loadData = array();
+
+		global $WEB_ELEM_LEVEL, $WEB_ELEM_PARAMS;
+		if(empty($WEB_ELEM_LEVEL)) {
+			$WEB_ELEM_LEVEL = 0;
+		}
+		if(empty($WEB_ELEM_PARAMS)) {
+			$WEB_ELEM_PARAMS = array($WEB_ELEM_LEVEL=>array());
+		}
+		$WEB_ELEM_LEVEL++;
+
+		try {
+			$params = elem_loader($path, $params);
+		} catch (FrameworkException $e) {
+
+		}
+
+		if(array_key_exists($WEB_ELEM_LEVEL-1, $WEB_ELEM_PARAMS)) {
+			$params = array_merge($WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL-1], $params);
+		}
+
+		if(!empty($options['pass'])) {
+			$WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL] = $params;
+		}
+
 		global $WEB_GLOBAL_PARAMS;
 		if(!empty($WEB_GLOBAL_PARAMS)) {
 			$params = array_merge($WEB_GLOBAL_PARAMS, $params);

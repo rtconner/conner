@@ -25,8 +25,9 @@ define('DS', DIRECTORY_SEPARATOR);
 define('SP', ' ');
 
 if(!defined('KEY')) {
-	define('KEY', basename(dirname($_SERVER["SCRIPT_FILENAME"])));
+	define('KEY', basename(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
 }
+
 define('ETC', dirname(dirname($_SERVER["SCRIPT_FILENAME"])).DS.'etc');
 
 define('MINUTE', 60);
@@ -90,8 +91,9 @@ function csve($str, $quote=false) {
 /**
  * Print out information for debugging
  */
-function debug($str, $showLine=true) {
-	if(DEBUG) {
+function debug($str, $showLine=true, $escape=true) {
+	Setting::get('debug');
+	if(true) {
 		$isAjax = IS_CLI || web\is_ajax();
 
 		if(!is_bool($showLine) && func_num_args() > 1) {
@@ -107,7 +109,7 @@ function debug($str, $showLine=true) {
 			$str = '<i>'.'NULL'.'</i>';
 		} elseif(is_array($str) || is_object($str)) {
 			$str = print_r($str, true);
-		} elseif(is_string($str)) {
+		} elseif(is_string($str) && $escape) {
 			$str = h($str);
 		}
 
@@ -190,7 +192,7 @@ function h($text, $ENT_QUOTES=ENT_QUOTES, $charset=null) {
 	}
 
 	if(is_null($charset)) {
-		$charset = ENCODING;
+		$charset = Setting::get('encoding');
 	}
 
 	return htmlspecialchars($text, $ENT_QUOTES, strtoupper($charset));
@@ -275,6 +277,10 @@ function m($name, $flavour=null) {
 
 	if(file_exists(MODELS.DS.$prefix.$fileName.'.php')) {
 		require_once(MODELS.DS.$prefix.$fileName.'.php');
+		$MODELS[$name][$flavourIndex] = new $className($flavour);
+		return $MODELS[$name][$flavourIndex];
+	} elseif(file_exists(CONNER_ROOT.DS.'src'.DS.'lib'.DS.'model'.DS.$fileName.'.php')) {
+		require_once(CONNER_ROOT.DS.'src'.DS.'lib'.DS.'model'.DS.$fileName.'.php');
 		$MODELS[$name][$flavourIndex] = new $className($flavour);
 		return $MODELS[$name][$flavourIndex];
 	} else {
@@ -370,7 +376,7 @@ if(file_exists(ETC.DS.'config.'.KEY.'.php')) {
 }
 
 if (!defined('ROOT')) {
-	define('ROOT', dirname(dirname($_SERVER["SCRIPT_FILENAME"])));
+	define('ROOT', dirname(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
 }
 
 /**
@@ -387,22 +393,22 @@ $prefix = PREFIX
 	: '';
 
 if(!defined('ELEMENTS'))
-	define('ELEMENTS', ROOT.DS.'src'.DS.'elements'.$prefix);
+	define('ELEMENTS', ROOT.DS.KEY.DS.'elements'.$prefix);
 
 if(!defined('LAYOUTS'))
-	define('LAYOUTS', ROOT.DS.'src'.DS.'layouts'.$prefix);
+	define('LAYOUTS', ROOT.DS.KEY.DS.'layouts'.$prefix);
 
 if(!defined('LIB'))
 	define('LIB', ROOT.DS.'lib');
 
 if(!defined('LOADERS'))
-	define('LOADERS', ROOT.DS.'src'.DS.'loaders'.$prefix);
+	define('LOADERS', ROOT.DS.KEY.DS.'loaders'.$prefix);
 
 if(!defined('EHANDLERS'))
-	define('EHANDLERS', ROOT.DS.'src'.DS.'ehandlers'.$prefix);
+	define('EHANDLERS', ROOT.DS.KEY.DS.'ehandlers'.$prefix);
 
 if(!defined('MODELS'))
-	define('MODELS', ROOT.DS.'src'.DS.'models');
+	define('MODELS', ROOT.DS.'models');
 
 if($IS_CLI) {
 	ignore_user_abort(true);
@@ -434,7 +440,8 @@ if (!defined('CACHE'))
 
 lib('cache');
 
-if(defined('DEBUG') && DEBUG) {
+// Setting::get('debug')
+if(true) {
 	error_reporting(E_ALL);
 	ini_set('display_errors','On');
 
@@ -448,7 +455,8 @@ if(defined('DEBUG') && DEBUG) {
         $trace = $exception->getTraceAsString();
         $trace = preg_replace ('/^#0\s+' . __FUNCTION__ . "[^\n]*\n/", '', $trace, 1);
         ob_end_clean();
-        debug($out."\n".$trace, false);
+
+        debug($out."\n".$trace, false, false);
 	}
 
 	function error_handler($errno, $errstr, $errfile, $errline) {
@@ -528,4 +536,28 @@ if(defined('DEBUG') && DEBUG) {
 
 if(file_exists(ETC.DS.'bootstrap.php')) {
 	require(ETC.DS.'bootstrap.php');
+}
+
+if(empty($_GET['uri'])) { // need to move to framework.php
+	abstract class URI {
+		public static $string = '/';
+		public static $array = array('/');
+		public function __toString () {
+			return self::$string;
+		}
+	}
+} else {
+	// i dont love this solution .. need better
+	abstract class URI {
+		public static $string;
+		public static $array;
+		public static function init() {
+			self::$string = $_GET['uri'];
+			self::$array = explode('/', trim($_GET['uri'], '/'));
+		}
+		public function __toString () {
+			return self::$string;
+		}
+	}
+	URI::init();
 }
