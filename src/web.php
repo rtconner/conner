@@ -282,7 +282,7 @@ function saving($options=array()) {
 	// todo: check $_SERVER['HTTP_REFERER'] is same domain as self;
 
 	if(array_key_exists('action', $options)) {
-		$action = vars('_action', null);
+		$action = get_var('_action', null);
 		unset($_POST['_action']);
 		unset($_GET['_action']);
 
