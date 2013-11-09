@@ -159,6 +159,13 @@ function elem($path, $params=array(), $opts=array()) {
 }
 
 /**
+ * Shortcut access to web\elem
+ */
+function get_var($name=null, $default=null) {
+	return web\get_var($name, $default);
+}
+
+/**
  * Follow headers on a given URL and expand it to it's final redirect.
  */
 function expand_url($url) {

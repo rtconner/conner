@@ -367,7 +367,7 @@ function urls() {
  * by a cookie, or post, or get (in that order)
  * @author Robert Conner <rtconner@gmail.com>
  */
-function vars($name=null, $default=null) {
+function get_var($name=null, $default=null) {
 	if(is_null($name)) {
 		return array_merge($_GET, $_POST);
 	} elseif(isset($_POST[$name]))
