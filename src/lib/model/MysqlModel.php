@@ -6,6 +6,7 @@ use mysqli;
 use cache;
 use DisplayableException;
 use FrameworkException;
+use Setting;
 
 abstract class MysqlModel {
 
@@ -285,7 +286,7 @@ abstract class MysqlModel {
 	}
 
 	function loggit($qs) {
-		if(DEBUG) {
+		if(Setting::get('debug')) {
 			global $MYSQL_LOGS;
 			$MYSQL_LOGS[] = $qs;
 		}
