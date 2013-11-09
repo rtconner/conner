@@ -28,7 +28,7 @@ if(!defined('KEY')) {
 	define('KEY', basename(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
 }
 
-define('ETC', dirname(dirname($_SERVER["SCRIPT_FILENAME"])).DS.'etc');
+define('ETC', dirname(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))).DS.'etc');
 
 define('MINUTE', 60);
 define('HOUR', 3600);
@@ -393,7 +393,7 @@ if (!defined('PREFIX'))
 	define('PREFIX', false);
 
 if (!defined('SELF_PATH'))
-	define('SELF_PATH', ROOT.DS.KEY);
+	define('SELF_PATH', ROOT.DS.KEY.DS.'www');
 
 $prefix = PREFIX
 	? (is_bool(PREFIX) ? DS.KEY : DS.PREFIX)
