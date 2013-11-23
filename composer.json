@@ -2,6 +2,8 @@
     "name": "rtconner/conner",
     "description": "Conner PHP Framework. A light PHP framework that is flexible for use in large projects.",
     "license": "MIT",
+    "version": "0.2",
+    "homepage": "https://github.com/rtconner/conner",
     "authors": [
         {
             "name": "Robert Conner",
