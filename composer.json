@@ -1,0 +1,14 @@
+{
+    "name": "rtconner/conner",
+    "description": "Conner PHP Framework. A light PHP framework that is flexible for use in large projects.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Conner",
+            "email": "rtconner@gmail.com"
+        }
+    ],
+    "require": {
+		"phpmailer/phpmailer": "dev-master"
+    }
+}
