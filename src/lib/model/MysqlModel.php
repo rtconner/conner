@@ -5,7 +5,7 @@ namespace model;
 use mysqli;
 use cache;
 use DisplayableException;
-use FrameworkException;
+use ConnerException;
 use Setting;
 
 abstract class MysqlModel {

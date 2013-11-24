@@ -1,4 +1,4 @@
 <?php
 
-class FrameworkException extends Exception {}
-class DisplayableException extends FrameworkException {}
+class ConnerException extends Exception {}
+class DisplayableException extends ConnerException {}

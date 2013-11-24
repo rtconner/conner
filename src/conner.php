@@ -189,7 +189,7 @@ function lib($name) {
 function log_file($string, $logFile='default') {
 	lib('Inflector');
 	if(!strlen($logFile)) {
-		throw new FrameworkException('Invalid Logfile "'.$tmp.'.log"');
+		throw new ConnerException('Invalid Logfile "'.$tmp.'.log"');
 	}
 
 	$log_file = TMP.DS.'log'.DS.(Inflector::slug($logFile)).'.log';
@@ -235,7 +235,7 @@ function m($name, $flavour=null) {
 		$MODELS[$name][$flavourIndex] = new $className($flavour);
 		return $MODELS[$name][$flavourIndex];
 	} else {
-		throw new FrameworkException($name.' Model Does Not Exist');
+		throw new ConnerException($name.' Model Does Not Exist');
 	}
 }
 
@@ -384,8 +384,7 @@ if (!defined('CACHE'))
 
 lib('cache');
 
-// Setting::get('debug')
-if(true) {
+if(Setting::get('debug')) {
 	error_reporting(E_ALL);
 	ini_set('display_errors','On');
 

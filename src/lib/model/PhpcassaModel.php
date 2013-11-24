@@ -65,19 +65,19 @@ abstract class phpcassaModel {
 
 		return $ret;
 	}
-	
+
 	/**
 	 * Fetch the connection object (create it if it it does not exist yet)
-	 * 
-	 * @param $reconnect bool force connection object to be re-created 
+	 *
+	 * @param $reconnect bool force connection object to be re-created
 	 */
 	protected function conn() {
 		if(is_null($this->conn)) {
-			
+
 			if(is_null($this->family())) {
-				throw new \FrameworkException('Column Family Missing, '.get_class($this));
+				throw new \ConnerException('Column Family Missing, '.get_class($this));
 			}
-	
+
 			try {
 				if($this->super) {
 					$this->conn = new \phpcassa\SuperColumnFamily($this->phpcassa_pool(), $this->family());
@@ -90,9 +90,9 @@ abstract class phpcassaModel {
 			} catch(cassandra\NotFoundException $e) {
 				exit('Sorry, I could not find your database (data_'.$this->family().')');
 			}
-			
+
 		}
-		
+
 		return $this->conn;
 	}
 
@@ -274,21 +274,21 @@ abstract class phpcassaModel {
 			}
 			return $result->rows[0]->key;
  		} catch (cassandra\InvalidRequestException $e) {
- 			// probably the index does not exist	
+ 			// probably the index does not exist
  		}
 	}
-	
+
 	/**
 	 * Return a phpcassa ConnectionPool instance
 	 */
 	function phpcassa_pool() {
 		global $PYCASSA_POOL;
-	
+
 		$credentials = null;
 		if(($un = Setting::get('Cass.username')) && ($pw = Setting::get('Cass.password'))) {
 			$credentials = array('username'=>$un, 'password'=>$pw);
 		}
-	
+
 		if(empty($PYCASSA_POOL)) {
 			$PYCASSA_POOL = new ConnectionPool(
 				Setting::get('Cass.keyspace'),
@@ -301,14 +301,14 @@ abstract class phpcassaModel {
 				$credentials // $credentials
 			);
 		}
-	
+
 		return $PYCASSA_POOL;
 	}
-	
+
 	/**
-	 * Return a new instance of 
+	 * Return a new instance of
 	 */
-	public function systemManager() {		
+	public function systemManager() {
 		$servers = Setting::get('Cass.servers');
 		$credentials = null;
 		if(($un = Setting::get('Cass.username')) && ($pw = Setting::get('Cass.password'))) {

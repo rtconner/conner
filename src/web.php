@@ -2,7 +2,7 @@
 
 namespace web;
 
-use FrameworkException;
+use ConnerException;
 use cache;
 
 /**
