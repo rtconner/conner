@@ -45,13 +45,6 @@ define('BUILD_NUMBER', file_exists(ETC.DS.'BUILD')?file_get_contents(ETC.DS.'BUI
 function __($str) { return $str; } // future i18n
 
 /**
- * Convert memory usage number to megabytes
- */
-function to_mb($mem_usage) {
-	return round($mem_usage/1048576, 4)." MB";
-};
-
-/**
  * Shows current memory and execution time of the application.
  *
  * @access public
@@ -63,29 +56,12 @@ function benchmark() {
 	if($execution_time < 0) { $execution_time = 'Unknown'; }
 
 	debug(array(
-		'current_memory' => to_mb($current_mem_usage),
-		'start_memory' => to_mb(CONNER_START_MEMORY),
-		'peak_memory' => to_mb(memory_get_peak_usage()),
+		'current_memory' => round($current_mem_usage/1048576, 4)." MB",
+		'start_memory' => round(CONNER_START_MEMORY/1048576, 4)." MB",
+		'peak_memory' => round(memory_get_peak_usage()/1048576, 4)." MB",
 		'execution_time' => $execution_time,
 		'build_number' => BUILD_NUMBER,
 	));
-}
-
-/**
- * CSV escape
- */
-function csve($str, $quote=false) {
-	if(is_array($str)) {
-		$ret = array();
-		foreach($str as $s)
-			$ret[] = csve($s, $quote);
-		return $ret;
-	}
-	$str = trim($str);
-	$str = preg_replace ("/\"/", "\"\"", $str);
-	if($quote)
-		$str = '"'.$str.'"';
-	return $str;
 }
 
 /**
@@ -156,38 +132,6 @@ function destroy_models() {
  */
 function elem($path, $params=array(), $opts=array()) {
 	return web\elem($path, $params, $opts);
-}
-
-/**
- * Shortcut access to web\elem
- */
-function get_var($name=null, $default=null) {
-	return web\get_var($name, $default);
-}
-
-/**
- * Follow headers on a given URL and expand it to it's final redirect.
- */
-function expand_url($url) {
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_HEADER, true);
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	$a = curl_exec($ch);
-	if(preg_match('#Location: (.*)#', $a, $r)) {
-		$l = trim($r[1]);
-		return $l;
-	}
-	return '';
-}
-
-/**
- * Javascript escape
- */
-function jse($str) {
-	$str = str_replace("\n", "", str_replace("\r", "", $str));
-	return addslashes($str);
 }
 
 /**
@@ -350,13 +294,6 @@ class Setting {
 				break;
         }
 	}
-}
-
-/**
- * Strip new line breaks from a string
- */
-function strip_nl($str) {
-	return str_replace("\n", "", str_replace("\r", "", $str));
 }
 
 /**
@@ -568,3 +505,5 @@ if(empty($_GET['uri'])) { // need to move to framework.php
 	}
 	URI::init();
 }
+
+require('src'.DS.'util.php');
