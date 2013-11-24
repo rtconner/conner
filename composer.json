@@ -4,6 +4,10 @@
     "license": "MIT",
     "version": "0.2",
     "homepage": "https://github.com/rtconner/conner",
+    "autoload": {
+    	"files": ["conner.php"],
+    	"exclude": ["src/lib/"]
+    },
     "authors": [
         {
             "name": "Robert Conner",
