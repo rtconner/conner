@@ -6,7 +6,6 @@
     "homepage": "https://github.com/rtconner/conner",
     "autoload": {
     	"files": ["conner.php"],
-    	"exclude": ["src/lib/"]
     },
     "authors": [
         {
