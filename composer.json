@@ -14,11 +14,11 @@
         }
     ],
     "require": {
-    	"monolog/monolog": "dev-master",
     	"php": ">=5.3.0",
 		"ext-mbstring": "*"
     },
     "suggest": {
+    	"monolog/monolog": "dev-master",
     	"klein/klein": "Fast PHP Routing"
     }
 }
