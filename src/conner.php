@@ -14,7 +14,7 @@
  */
 define('CONNER_START_MEMORY', memory_get_usage());
 define('CONNER_START_MICROTIME', (float)substr(microtime(), 0, 10));
-define('CONNER_ROOT', realpath(dirname(__FILE__)));
+define('CONNER_ROOT', realpath(dirname(dirname(__FILE__))));
 
 $IS_CLI = (PHP_SAPI === 'cli');
 define('IS_CLI', $IS_CLI);
@@ -170,6 +170,7 @@ function ip_address() {
  */
 function lib($name) {
 	$name = str_replace('/', DS, $name);
+
 	if(file_exists(LIB.DS.$name.'.php')) {
 		require_once(LIB.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.DS.$name.'.php')) {
@@ -360,10 +361,10 @@ if($IS_CLI) {
 	require('src'.DS.'console.php');
 } else {
 	session_start();
-	require('src'.DS.'web.php');
+	require(CONNER_ROOT.DS.'src'.DS.'web.php');
 }
 
-require('src'.DS.'exceptions.php');
+require(CONNER_ROOT.DS.'src'.DS.'exceptions.php');
 
 if(file_exists(ETC.DS.'local.'.KEY.'.php')) {
 	require(ETC.DS.'local.'.KEY.'.php');
@@ -376,13 +377,18 @@ if(file_exists(ETC.DS.'local.php')) {
 if(!defined('TMP'))
 	define('TMP', ROOT.DS.'tmp');
 
-if (!defined('SELF_URL'))
-	define('SELF_URL', '');
-
 if (!defined('CACHE'))
 	define('CACHE', ROOT.DS.'tmp'.DS.'cache');
 
 lib('cache');
+
+if(!Setting::get('http')) {
+	Setting::set('http', 'http://'.$_SERVER['HTTP_HOST']);
+}
+
+if(!Setting::get('https')) {
+	Setting::set('https', Setting::get('http'));
+}
 
 if(Setting::get('debug')) {
 	error_reporting(E_ALL);
@@ -453,7 +459,7 @@ if(Setting::get('debug')) {
 	ini_set('display_errors', 'Off');
 
 	function exception_handler($exception) {
-		$pieces = explode('/', trim(URI, '/'));
+		$pieces = explode('/', trim(URI::$string, '/'));
 		if(file_exists(EHANDLERS.DS.implode(DS, $pieces).'.php')) {
 			$message = $exception->getMessage();
 			if(empty($message)) { $message = 'There was an unkown error'; }
@@ -465,7 +471,7 @@ if(Setting::get('debug')) {
 	}
 
 	function error_handler($errno, $errstr, $errfile, $errline) {
-		$pieces = explode('/', trim(URI, '/'));
+		$pieces = explode('/', trim(URI::$string, '/'));
 		if(file_exists(EHANDLERS.DS.implode(DS, $pieces).'.php')) {
 			$message = $errstr;
 			if(empty($message)) { $message = 'There was an unkown error'; };
@@ -481,7 +487,7 @@ if(file_exists(ETC.DS.'bootstrap.php')) {
 	require(ETC.DS.'bootstrap.php');
 }
 
-if(empty($_GET['uri'])) { // need to move to framework.php
+if(empty($_GET['uri'])) {
 	abstract class URI {
 		public static $string = '/';
 		public static $array = array('/');
@@ -505,4 +511,4 @@ if(empty($_GET['uri'])) { // need to move to framework.php
 	URI::init();
 }
 
-require('src'.DS.'util.php');
+require(CONNER_ROOT.DS.'src'.DS.'util.php');

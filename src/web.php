@@ -4,6 +4,8 @@ namespace web;
 
 use ConnerException;
 use cache;
+use URI;
+use Setting;
 
 /**
  * Throw a 404
@@ -90,7 +92,7 @@ function elem($path, $params=array(), $options=array()) {
 		if(!empty($WEB_GLOBAL_PARAMS)) {
 			$params = array_merge($WEB_GLOBAL_PARAMS, $params);
 		}
-
+		
         if(empty($options['layout'])) {
         	ob_start();
     		elem_file($elemFile, $params);
@@ -138,7 +140,7 @@ function elem_loader() {
 			$__params = array_merge($__params, $data);
 		}
     } else {
-		throw new FrameworkException('Loader Not Found : '.$__loadFile);
+// 		throw new FrameworkException('Loader Not Found : '.$__loadFile);
     }
 
     return $__params;
@@ -324,7 +326,7 @@ function url() {
 	$args = func_get_args();
 
 	if(empty($args)) {
-		$args = array(URI);
+		$args = array(URI::$string);
 	}
 
 	$base = $args[0];
@@ -338,12 +340,11 @@ function url() {
 			$path = implode('/', $args);
 		}
 	} else {
-		$uri = URI;
-		$uriParams = explode('/', $uri);
+		$uriParams = explode('/', URI::$string);
 		$path = '/'.$uriParams[1].'/'.implode('/', $args);
 	}
-
-	return SELF_URL.$path;
+	
+	return $path;
 }
 
 /**
@@ -351,7 +352,7 @@ function url() {
  */
 function urlf() {
 	$args = func_get_args();
-	return HTTP_HOST.call_user_func_array('url', $args);
+	return trim(Setting::get('http').call_user_func_array('url', $args), '/');
 }
 
 /**
@@ -359,7 +360,7 @@ function urlf() {
  */
 function urls() {
 	$args = func_get_args();
-	return HTTPS_HOST.call_user_func_array('url', $args);
+	return trim(Setting::get('https').call_user_func_array('url', $args), '/');
 }
 
 /**
