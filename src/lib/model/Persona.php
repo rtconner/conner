@@ -2,6 +2,8 @@
 namespace model;
 
 lib('model/Model');
+use web;
+use Setting;
 
 /**
  * Collection of methods for handling using the Mozilla Persona library
@@ -21,20 +23,26 @@ class Persona extends Model {
 		);
 
 		//Use the $_POST superglobal array for PHP < 5.2 and write your own filter
-		$params = 'assertion=' . urlencode($assert) . '&audience=' . urlencode('http://local.interested');
+		$params = 'assertion=' . urlencode($assert) . '&audience=' . urlencode(web\urlf('/'));
+
 		$ch = curl_init();
 		$options = array(
 				CURLOPT_URL => $url,
 				CURLOPT_RETURNTRANSFER => TRUE,
 				CURLOPT_POST => 2,
-				CURLOPT_SSL_VERIFYPEER => true,
+				CURLOPT_SSL_VERIFYPEER => !Setting::get('debug'),
 				CURLOPT_SSL_VERIFYHOST => 2,
 				CURLOPT_POSTFIELDS => $params
 		);
 		curl_setopt_array($ch, $options);
 		$json = curl_exec($ch);
+		
+		if(!$json) {
+			debug(curl_error($ch));
+		}
+		
 		curl_close($ch);
-
+		
 		$data = json_decode($json);
 
 		if($data->status == 'okay') {

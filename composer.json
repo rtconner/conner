@@ -1,25 +1,25 @@
 {
-    "name": "rtconner/conner",
-    "description": "Conner PHP Framework. A light PHP framework that is flexible for use in large projects.",
-    "license": "MIT",
-    "version": "0.2",
-    "homepage": "https://github.com/rtconner/conner",
-    "autoload": {
-    	"files": ["conner.php"]
-    },
+	"name": "rtconner/conner",
+	"description": "Conner PHP Framework. A light PHP framework that is flexible for use in large projects.",
+	"license": "MIT",
+	"version": "0.2",
+	"homepage": "https://github.com/rtconner/conner",
+	"autoload": {
+		"files": ["src/conner.php"]
+	},
     "authors": [
-        {
+		{
             "name": "Robert Conner",
             "email": "rtconner@gmail.com"
-        }
-    ],
+		}
+	],
     "require": {
-    	"swiftmailer/swiftmailer": "5.1.*@dev",
-    	"monolog/monolog": "dev-master",
-    	"php": ">=5.4.0",
+		"swiftmailer/swiftmailer": "5.1.*@dev",
+		"php": ">=5.3.0",
 		"ext-mbstring": "*"
-    },
-    "suggest": {
-    	"klein/klein": "Fast PHP Routing",
-    }
+	},
+	"suggest": {
+		"monolog/monolog": "dev-master",
+		"klein/klein": "Fast PHP Routing"
+	}
 }
