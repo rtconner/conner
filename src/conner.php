@@ -195,8 +195,10 @@ function log_file($string, $logFile='default') {
 	}
 
 	$log_file = TMP.DS.'log'.DS.(Inflector::slug($logFile)).'.log';
-	@mkdir(dirname($log_file), 0777, true);
-	file_put_contents($log_file, $string."\n", FILE_APPEND | LOCK_EX);
+
+	$log = new Monolog\Logger(KEY);
+	$log->pushHandler(new Monolog\Handler\StreamHandler($log_file, Monolog\Logger::DEBUG));
+	$log->addInfo($string);
 }
 
 /**

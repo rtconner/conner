@@ -8,17 +8,6 @@ use \phpcassa\SystemManager;
 use cassandra;
 use Setting;
 
-#### This top bit is a copy/paste of the phpcassa autoload.php file ####
-spl_autoload_register(function($className){
-    if (strpos($className, 'phpcassa') === 0 || strpos($className, 'Thrift') === 0) {
-        require_once LIB.DS.'phpcassa/'.str_replace('\\', '/', $className).'.php';
-    }
-});
-
-// This sets up the THRIFT_AUTOLOAD map
-require_once LIB.DS.'phpcassa/cassandra/Cassandra.php';
-require_once LIB.DS.'phpcassa/cassandra/Types.php';
-
 abstract class phpcassaModel {
 
 	private $conn;
