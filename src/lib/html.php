@@ -1,6 +1,10 @@
 <?php
 namespace html;
 
+use Setting;
+use DOMDocument;
+use DOMElement;
+
 /**
  * Returns a charset META-tag.
  *
@@ -28,6 +32,14 @@ function build_attributes($attributes) {
 
 /**
  * Return CSS link tag
+ *
+ * @param $name string.css
+ * @param $opts
+ *   media
+ *   if
+ *
+ * todo: google cachebustin
+ * function cachebustin($f) { echo $f . '?=' . date("mdyHis", filemtime($f)); }
  */
 function css($name, $opts=array()) {
 	$opts = array_merge(array(
@@ -36,7 +48,7 @@ function css($name, $opts=array()) {
 
 	$path = ($name[0] == '/') ? url($name) : url('/css/'.$name);
 
-	$str = sprintf('<link rel="stylesheet" type="text/css" href="%s" media="%s" />', $path, $opts['media']);
+	$str = sprintf('<link rel="stylesheet" type="text/css" href="%s" media="%s" />', $path.'?'.BUILD_NUMBER, $opts['media']);
 
 	if(!empty($opts['if'])) {
 		$str = '<!--[if '.$opts['if'].']>'.$str.'<![endif]-->';
@@ -46,8 +58,6 @@ function css($name, $opts=array()) {
 }
 
 function ending($str='') {
-
-	flash();
 	$str .= jsready();
 	$str .= jsfoot();
 
@@ -58,31 +68,26 @@ function flash($ajax=false) {
 	if(!empty($_SESSION['FRAMEWORK_FLASH'])) {
 		$message = $_SESSION['FRAMEWORK_FLASH']['message'];
 		$type = $_SESSION['FRAMEWORK_FLASH']['type'];
-		$js = 'alrt.'.$type.'(\''.jse($message).'\', true)';
-		$ajax
-			? jsrun($js)
-			: jsready($js);
 		unset($_SESSION['FRAMEWORK_FLASH']);
+
+		return \web\elem('flash', array('message'=>$message, 'type'=>$type, 'ajax'=>$ajax));
 	}
+
+	return '';
 }
 
 /**
  * Return html to inlude javascript file
  */
 function jsfile($name, $head=false) {
+	$path = ($name[0] == '/') ? url($name) : url('/js/'.$name);
 
-	if(!strncmp($name, 'http', strlen('http'))) {
-		$path = $name;
-	} else {
-		$path = ($name[0] == '/')
-			? url($name)
-			: url('/js/'.$name);
-	}
+	$html = sprintf('<script type="text/javascript" src="%s"></script>', $path.'?'.BUILD_NUMBER);
 
 	if($head) {
-		head_append(sprintf('<script type="text/javascript" src="%s"></script>', $path));
+		head_append($html);
 	} else {
-		return sprintf('<script type="text/javascript" src="%s"></script>', $path);
+		return $html;
 	}
 }
 
@@ -128,6 +133,9 @@ function jsfoot($js=null) {
 	return '';
 }
 
+/**
+ * Build a document <head> tag
+ */
 function head($head) {
 	global $HTML_HEAD;
 	if(!headers_sent()) {
@@ -137,18 +145,22 @@ function head($head) {
 	$jsRun = jsrun();
 
 	return
-		'<!DOCTYPE html><html lang="en"><head>'.content_type().'<title>'.title().'</title><link href="/favicon.ico" type="image/x-icon" rel="icon" /><link href="/favicon.ico" type="image/x-icon" rel="shortcut icon" />'.
+		'<!DOCTYPE html><html lang="en"><head>'.content_type().'<title>'.h(title()).'</title><link href="/favicon.ico" type="image/x-icon" rel="icon" /><link href="/favicon.ico" type="image/x-icon" rel="shortcut icon" />'.
 		$head.
 		$jsRun.
 		$HTML_HEAD.'</head>';
 }
 
-function head_append($str=null) {
+/**
+ * Append a chunk of html to the documents <head> tag. Works in conjunction with head() method. 
+ * @param $html string (function returns existing head if null)
+ */
+function head_append($html=null) {
 	global $HTML_HEAD;
-	if(is_null($str)) {
+	if(is_null($html)) {
 		return (string) $HTML_HEAD;
 	}
-	$HTML_HEAD .= $str;
+	$HTML_HEAD .= $html;
 }
 
 /**
@@ -169,6 +181,9 @@ function link($url, $title, $options=array()) {
 	return tag('a', $title, $options);
 }
 
+/**
+ * For use in html head. Handles actions to tell browser not to cache the current document
+ */
 function no_cache() {
 	if(!headers_sent()) {
 		header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
@@ -180,6 +195,9 @@ function no_cache() {
 	return '<meta http-equiv="expires" CONTENT="Fri, 1 Jan 1990 00:00:00 GMT"><meta http-equiv="pragma" CONTENT="no-cache"><meta http-equiv="cache-control" value="no-cache, no store, must-revalidate">';
 }
 
+/**
+ * Pre-load an image into client browsers memory
+ */
 function preload($image) {
 	jsfoot('var i = new Image();i.src=\''.url('/img/'.$image).'\'');
 }
@@ -189,10 +207,10 @@ function preload($image) {
  */
 function package($name, $opts=array()) {
 	global $HTML_PACKAGES;
-
 	if(empty($HTML_PACKAGES[$name])) {
 		$ret = '';
-		$FOLDER = SELF_PATH.DS.'package'.DS.$name.DS;
+
+		$FOLDER = CONNER_WWW.DS.'package'.DS.$name.DS;
 		$PATH = '/package/'.$name.'/';
 
 		if(file_exists($FOLDER.$name.'.css'))
@@ -214,20 +232,25 @@ function package($name, $opts=array()) {
 		if(empty($opts['inline'])) {
 			head_append($ret);
 		} else {
-			return $ret;
+			return $ret;	
 		}
 	}
 }
 
-function title($title=null) {
+/**
+ * Set string to use in document <title> tag
+ */
+function title($title=null, $usePrefix=true) {
 	global $HTML_TITLE;
+	
 	if(is_null($title)) {
-		if(empty($HTML_TITLE)) {
-			return DEFAULT_TITLE;
+		if(!strlen($HTML_TITLE)) {
+			return Setting::get('Doc.title_default');	
 		}
+		
 		return $HTML_TITLE;
 	} else {
-		$HTML_TITLE = $title;
+		$HTML_TITLE = ($usePrefix?Setting::get('Doc.title_prefix'):'').h($title);
 	}
 }
 
@@ -260,20 +283,33 @@ function tag($name, $text, $options = array()) {
 	return sprintf('<%s%s>%s</%s>', $name, mb_strlen($attrs)?' '.$attrs:'', $text, $name);
 }
 
-function field_error($str, $show=true) {
-	global $HTML_FIELD_ERROR;
-
-	if(empty($HTML_FIELD_ERROR)) {
-		jsready('
-			$(\'.ein\').live(\'click\', function(e){
-				e.stopPropagation();
-				$(this).parent().hide();
-			});
-		');
+/**
+ * Return html if first value is a non empty string, otherwise return an empty string
+ * pass in params same as sprintf
+ */
+function sprintif($template, $value) {
+	
+	if(strlen($value)) {
+		return call_user_func_array('sprintf', array($template, h($value)));	
 	}
+	
+	return '';
+}
 
-	$HTML_FIELD_ERROR = true;
-	return '<div class="eout" style="display:'.($show?'block':'none').';"><div class="ein">'.$str.'</div>
+function field_error($str, $show=true) {
+//	global $HTML_FIELD_ERROR;
+//
+//	if(empty($HTML_FIELD_ERROR)) {
+//		jsready('
+//			$(\'.ein\').on(\'click\', function(e){
+//				e.stopPropagation();
+//				$(this).parent().hide();
+//			});
+//		');
+//	}
+//
+//	$HTML_FIELD_ERROR = true;
+	return '<div class="eout" style="display:'.($show?'block':'none').';"><div class="ein" onclick="this.parentNode.style.display=\'none\';return false;">'.$str.'</div>
 		<div class="ein10 einb"></div>
 		<div class="ein9 einb"></div>
 		<div class="ein8 einb"></div>
@@ -288,14 +324,61 @@ function field_error($str, $show=true) {
 }
 
 /**
- * Return html if first value is a non empty string, otherwise return an empty string
- * pass in params same as sprintf
+ * $result = html\to_dom("<html><head><title>teste</title></head><body style='background:red;'>ola <span id='testando'>teste</span> do mundo</body></html>"); // gets a array with id of the first Child and the code of the rest..
+ * echo $result["code"]; // to show the code
+ * echo "document.body.appendChild(".$result["id"].")"; // To show the result in document.body
  */
-function sprintif($template, $value) {
-
-	if(strlen($value)) {
-		return call_user_func_array('sprintf', array($template, h($value)));
+function to_dom($html) {
+	if(is_string($html)){
+		$type = "string";
+	} else{
+		$type = get_class($html);
 	}
-
-	return '';
+	switch($type){
+		case "DOMDocument":
+		case "DOMElement":
+			$id = $html->nodeName."_".md5(uniqid())."_element";
+			if($html->nodeName != "#document"){
+				$code = "var ".$id." = document.createElement('".$html->nodeName."');\n";
+			}
+			else{
+				$code = "";
+			}
+			if(!!$html->attributes){ 
+				foreach($html->attributes as $attr){
+					$code .= $id.".setAttribute('".$attr->name."', '".jse($attr->value)."');\n";
+				}
+			}
+			if(!!$html->childNodes){
+				foreach($html->childNodes as $child){
+					if($child->nodeType == XML_TEXT_NODE){
+						$code .= $id.".appendChild(document.createTextNode('".htmlentities(strip_nl($child->nodeValue))."'));\n";
+					}
+					else{
+						$element = to_dom($child);
+						$code .= $element["code"];
+						if($html->nodeName != "#document"){
+							$code .= $id.".appendChild(".$element["id"].");\n";
+						}
+						else{
+							$id = $element["id"];
+						}
+					}
+				}
+			}
+			return array("code"=>$code, "id"=>$id);
+			break;
+		case "DOMDocumentType":
+			return array("code"=>"","id"=>"");
+			break;
+		default:
+		case "string":
+			$dom = new DOMDocument();
+			$dom->strictErrorChecking = false;
+			$dom->loadHTML($html);
+			$result = to_dom($dom);
+			return $result;
+			break;
+	} 
+	return NULL;
 }

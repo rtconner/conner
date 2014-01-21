@@ -15,6 +15,7 @@
 define('CONNER_START_MEMORY', memory_get_usage());
 define('CONNER_START_MICROTIME', (float)substr(microtime(), 0, 10));
 define('CONNER_ROOT', realpath(dirname(dirname(__FILE__))));
+define('CONNER_WWW', realpath(dirname($_SERVER["SCRIPT_FILENAME"])));
 
 $IS_CLI = (PHP_SAPI === 'cli');
 define('IS_CLI', $IS_CLI);
@@ -329,9 +330,6 @@ if (!defined('ROOT')) {
  */
 if (!defined('PREFIX'))
 	define('PREFIX', false);
-
-if (!defined('SELF_PATH'))
-	define('SELF_PATH', ROOT.DS.KEY.DS.'www');
 
 $prefix = PREFIX
 	? (is_bool(PREFIX) ? DS.KEY : DS.PREFIX)
