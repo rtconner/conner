@@ -305,7 +305,7 @@ function mysqli_connection() {
 		return $MYSQLI_CONNECTION;
 	}
 
-	$MYSQLI_CONNECTION = new mysqli(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB);
+	$MYSQLI_CONNECTION = new mysqli(Setting::get('Mysql.host'), Setting::get('Mysql.user'), Setting::get('Mysql.pass'), Setting::get('Mysql.db'));
 
 	if (mysqli_connect_errno()) {
     	throw new FrameworkException("Connect failed: %s\n". mysqli_connect_error());
