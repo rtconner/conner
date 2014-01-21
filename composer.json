@@ -14,12 +14,12 @@
 		}
 	],
 	"require": {
-		"swiftmailer/swiftmailer": "5.1.*@dev",
 		"php": ">=5.3.0",
-		"ext-mbstring": "*"
+		"ext-mbstring": "*",
+		"swiftmailer/swiftmailer": "5.0.*",
+		"monolog/monolog": "1.7.0"
 	},
 	"suggest": {
-		"monolog/monolog": "dev-master",
 		"klein/klein": "Fast PHP Routing"
 	}
 }
