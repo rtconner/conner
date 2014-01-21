@@ -251,7 +251,7 @@ abstract class phpcassaModel {
 	}
 
 	public function loggit($qs) {
-		if(DEBUG) {
+		if(Setting::get('debug')) {
 			global $CASS_LOGS;
 			$CASS_LOGS[] = $qs;
 		}

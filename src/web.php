@@ -364,6 +364,24 @@ function urls() {
 }
 
 /**
+ * Indiscriminantly get a variable passed from browser
+ * by a cookie, or post, or get (in that order)
+ * @author Robert Conner <rtconner@gmail.com>
+ */
+function vars($name=null, $default=null) {
+	if(is_null($name)) {
+		return array_merge($_GET, $_POST);
+	} elseif(isset($_POST[$name]))
+	return $_POST[$name];
+	elseif(isset($_GET[$name]))
+	return $_GET[$name];
+	elseif(isset($_COOKIE[$name]))
+	return $_COOKIE[$name];
+	else
+		return $default;
+}
+
+/**
  * Sends a header with an error string, meant to be used in ajax functionality
  */
 function ajax_error($errorStr) {
