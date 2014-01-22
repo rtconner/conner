@@ -171,7 +171,7 @@ function ip_address() {
  */
 function lib($name) {
 	$name = str_replace('/', DS, $name);
-
+print LIB.DS.$name.'.php';
 	if(file_exists(LIB.DS.$name.'.php')) {
 		require_once(LIB.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.DS.$name.'.php')) {
@@ -181,7 +181,8 @@ function lib($name) {
 	} elseif(file_exists(LIB.DS.$name.'.phar')) {
 		require_once(LIB.DS.$name.'.phar');
 	} else {
-		throw new Exception('Count Not Find Library "'.$name.'"');
+		echo "$name";
+// 		throw new Exception('Count Not Find Library "'.$name.'"');
 	}
 }
 
@@ -358,13 +359,23 @@ if(!defined('MODELS'))
 if($IS_CLI) {
 	ignore_user_abort(true);
 	set_time_limit(0);
-	require('src'.DS.'console.php');
+	require('console.php');
 } else {
+	
 	session_start();
-	require(CONNER_ROOT.DS.'src'.DS.'web.php');
+	require('web.php');
+	
+	if(!Setting::get('http')) {
+		Setting::set('http', 'http://'.$_SERVER['HTTP_HOST']);
+	}
+	
+	if(!Setting::get('https')) {
+		Setting::set('https', Setting::get('http'));
+	}
+	
 }
 
-require(CONNER_ROOT.DS.'src'.DS.'exceptions.php');
+require('exceptions.php');
 
 if(file_exists(ETC.DS.'local.'.KEY.'.php')) {
 	require(ETC.DS.'local.'.KEY.'.php');
@@ -381,14 +392,6 @@ if (!defined('CACHE'))
 	define('CACHE', ROOT.DS.'tmp'.DS.'cache');
 
 lib('cache');
-
-if(!Setting::get('http')) {
-	Setting::set('http', 'http://'.$_SERVER['HTTP_HOST']);
-}
-
-if(!Setting::get('https')) {
-	Setting::set('https', Setting::get('http'));
-}
 
 if(Setting::get('debug')) {
 	error_reporting(E_ALL);
@@ -511,4 +514,4 @@ if(empty($_GET['uri'])) {
 	URI::init();
 }
 
-require(CONNER_ROOT.DS.'src'.DS.'util.php');
+require('util.php');
