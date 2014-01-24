@@ -171,7 +171,7 @@ function ip_address() {
  */
 function lib($name) {
 	$name = str_replace('/', DS, $name);
-print LIB.DS.$name.'.php';
+
 	if(file_exists(LIB.DS.$name.'.php')) {
 		require_once(LIB.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.DS.$name.'.php')) {
@@ -181,7 +181,6 @@ print LIB.DS.$name.'.php';
 	} elseif(file_exists(LIB.DS.$name.'.phar')) {
 		require_once(LIB.DS.$name.'.phar');
 	} else {
-		echo "$name";
 // 		throw new Exception('Count Not Find Library "'.$name.'"');
 	}
 }
