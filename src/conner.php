@@ -324,6 +324,8 @@ class Setting {
 	}
 }
 
+Setting::set('encoding', 'UTF-8');
+
 /**
  * Return url string
  * Examples
