@@ -116,7 +116,7 @@ function debug_echo($head, $file, $line, $body) {
 	} else {
 		$wrapper = '<div class="developer-debug" style="display:block;min-width:100%%;background-color:yellow;padding:4px;text-align:left;font-family:Courier New;margin-bottom:1px;font-size:11px;">'.
 				'<strong>%s</strong> (%s on line <strong>%d</strong>)'.
-				'<pre style="margin:0;background-color:yellow;font-size:10px;padding:0;display:block;">%s</pre></div>';
+				'<pre style="margin:0;background-color:yellow;font-size:10px;padding:0;display:block;border:0;">%s</pre></div>';
 	}
 
 	echo sprintf($wrapper,
@@ -282,7 +282,6 @@ function script_exec($command) {
 	}
 }
 
-debug('ssdf');
 /**
  * Utility class for handling app settings
  *
@@ -423,7 +422,7 @@ if(Setting::get('debug')) {
 
 	function exception_handler($exception) {
 		$class = get_class($exception);
-  		$out = "Uncaught $class: ".$exception->getMessage();
+  		$out = "$class: ".$exception->getMessage();
 
 		ob_start();
         debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
