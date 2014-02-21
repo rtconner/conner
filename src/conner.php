@@ -89,9 +89,9 @@ function debug($str) {
 		}
 
 		if(is_bool($str)) {
-			$str = '<i>'.($str?'TRUE':'FALSE').'</i>';
+			$str = '<em>'.($str?'TRUE':'FALSE').'</em>';
 		} elseif(is_null($str)) {
-			$str = '<i>'.'NULL'.'</i>';
+			$str = '<em>'.'NULL'.'</em>';
 		} elseif(is_array($str) || is_object($str)) {
 			$str = print_r($str, true);
 		} elseif(is_string($str)) {
@@ -528,6 +528,12 @@ if(empty($_GET['uri'])) {
 		public static function init() {
 			self::$string = $_GET['uri'];
 			self::$array = explode('/', trim($_GET['uri'], '/'));
+		}
+		public static function get($index) {
+			if(array_key_exists($index, self::$array)) {
+				return self::$array[$index];
+			}
+			return null;
 		}
 		public function __toString () {
 			return self::$string;
