@@ -295,6 +295,10 @@ class Setting {
 	private static $_properties = array();
 
 	public static function __callStatic($method, $args) {
+		if(count($args) < 1) {
+			throw new \Exception('Invalid parameters for Setting::'.$method.'()');
+		}
+		
 		$property = $args[0];
 
 		switch($method) {
@@ -310,7 +314,15 @@ class Setting {
 					return self::$_properties[$property];
 				}
 				
-				throw new \Exception('Unkown Setting "'.$property.'"');
+				switch($property) { // defaults for settings or throw exception 
+					case 'encoding':
+						return 'UTF-8';break;
+					case 'debug':
+						return false;break;
+					default:
+						throw new \Exception('Unkown Setting "'.$property.'"');
+						break;
+				}
 				break;
 			case 'isset':
 				return isset(self::$_properties[$property]);
@@ -323,8 +335,6 @@ class Setting {
         }
 	}
 }
-
-Setting::set('encoding', 'UTF-8');
 
 /**
  * Return url string
