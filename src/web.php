@@ -189,6 +189,17 @@ function elem_layout($name, $content, $params) {
 }
 
 /**
+ * Force the browser to use SSL
+ */
+function force_ssl() {
+	$https = Setting::get('https');
+	
+	if(@$_SERVER['HTTPS'] != "on" && $https != 'http://'.$_SERVER['HTTP_HOST']) {
+		redirect($https.URI::$string);
+	}
+}
+
+/**
  * @param $message string
  * @param $url string result of a url() call, true to redirect to current url
  * @param $type string|bool 'success', 'error' or other string to use in the flash type

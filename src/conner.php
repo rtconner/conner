@@ -48,6 +48,10 @@ define('YEAR', 31536000);
 
 define('BUILD_NUMBER', file_exists(ETC.DS.'BUILD')?file_get_contents(ETC.DS.'BUILD'):time());
 
+if (!defined('ROOT')) {
+	define('ROOT', dirname(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
+}
+
 /**
  * Future I18N Implementation
  */
@@ -76,12 +80,16 @@ function benchmark() {
 /**
  * Print out information for debugging
  */
-function debug($str, $showLine=true, $escape=true) {
-	Setting::get('debug');
-	if(true) {
-		$isAjax = IS_CLI || web\is_ajax();
+function debug($str) {
+	try { 
+		$show = !class_exists('Setting') || Setting::get('debug');
+	} catch(Exception $e) { 
+		$show = true;
+	}
+	
+	if($show) {
 
-		if(!is_bool($showLine) && func_num_args() > 1) {
+		if(func_num_args() > 1) {
 			foreach(func_get_args() as $arg) {
 				debug($arg);
 			}
@@ -89,30 +97,42 @@ function debug($str, $showLine=true, $escape=true) {
 		}
 
 		if(is_bool($str)) {
-			$str = '<i>'.($str?'TRUE':'FALSE').'</i>';
+			$str = '<em>'.($str?'TRUE':'FALSE').'</em>';
 		} elseif(is_null($str)) {
-			$str = '<i>'.'NULL'.'</i>';
+			$str = '<em>'.'NULL'.'</em>';
 		} elseif(is_array($str) || is_object($str)) {
 			$str = print_r($str, true);
-		} elseif(is_string($str) && $escape) {
-			$str = h($str);
+		} elseif(is_string($str)) {
+			$str = htmlspecialchars($str);
 		}
 
 		$calledFrom = debug_backtrace();
-		if($isAjax) {
-			$wrapper = "%s (line %d)\n  %s\n\n";
-		} else {
-			$wrapper = '<div class="developer-debug" style="min-width:100%%;background-color:yellow; padding:4px;text-align:left;font-family:Courier New;margin-bottom:1px;">'.
-				'<strong>%s</strong> (line <strong>%d</strong>)'.
-				'<pre style="margin:0;"">%s</pre></div>';
-		}
-
-		echo sprintf($wrapper,
-			substr(str_replace(ROOT, '', $calledFrom[0]['file']), 1),
+		
+		echo debug_echo(
+			'Debug',
+			$calledFrom[0]['file'], //substr(str_replace(ROOT, '', $calledFrom[0]['file']), 1),
 			$calledFrom[0]['line'],
-			trim($str)
+			$str
 		);
 	}
+}
+
+function debug_echo($head, $file, $line, $body) {
+	$txtOut = IS_CLI || (function_exists('web\is_ajax') && web\is_ajax());
+	if($txtOut) {
+		$wrapper = "%s (in %s on line %d)\n  %s\n\n";
+	} else {
+		$wrapper = '<div class="developer-debug" style="display:block;min-width:100%%;background-color:yellow;padding:4px;text-align:left;font-family:Courier New;margin-bottom:1px;font-size:11px;">'.
+				'<strong>%s</strong> (%s on line <strong>%d</strong>)'.
+				'<pre style="margin:0;background-color:yellow;font-size:10px;padding:0;display:block;border:0;">%s</pre></div>';
+	}
+
+	echo sprintf($wrapper,
+			trim($head),
+			$file,
+			(int) $line,
+			trim($body)
+	);
 }
 
 /**
@@ -179,7 +199,6 @@ function ip_address() {
  */
 function lib($name) {
 	$name = str_replace('/', DS, $name);
-	
 	if(file_exists(LIB.DS.$name.'.php')) {
 		require_once(LIB.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.DS.$name.'.php')) {
@@ -190,7 +209,7 @@ function lib($name) {
 		require_once(LIB.DS.$name.'.phar');
 	} else {
 		echo 'Could Not Find Library "'.$name.'"'."\n";
-// 		throw new Exception('Could Not Find Library "'.$name.'"');
+// 		throw new ConnerException('Count Not Find Library "'.$name.'"');
 	}
 }
 
@@ -284,17 +303,33 @@ class Setting {
 	private static $_properties = array();
 
 	public static function __callStatic($method, $args) {
+		if(count($args) < 1) {
+			throw new \Exception('Invalid parameters for Setting::'.$method.'()');
+		}
+		
 		$property = $args[0];
 
 		switch($method) {
 			case 'set':
+				if(count($args) != 2) {
+					throw new \Exception('Invalid parameters for Setting::set');
+				}
+				
 				self::$_properties[ $property ] = $args[1];
 				break;
 			case 'get':
 				if(array_key_exists($property, self::$_properties)) {
 					return self::$_properties[$property];
-				} else {
-					return null;
+				}
+				
+				switch($property) { // defaults for settings or throw exception 
+					case 'encoding':
+						return 'UTF-8';break;
+					case 'debug':
+						return false;break;
+					default:
+						throw new \Exception('Unkown Setting "'.$property.'"');
+						break;
 				}
 				break;
 			case 'isset':
@@ -363,11 +398,15 @@ if($IS_CLI) {
 	session_start();
 	require('web.php');
 	
-	if(!Setting::get('http')) {
+	try {
+		Setting::get('http');
+	} catch(Exception $e) {
 		Setting::set('http', 'http://'.$_SERVER['HTTP_HOST']);
 	}
-	
-	if(!Setting::get('https')) {
+
+	try {
+		Setting::get('https');
+	} catch(Exception $e) {
 		Setting::set('https', Setting::get('http'));
 	}
 	
@@ -397,8 +436,7 @@ if(Setting::get('debug')) {
 
 	function exception_handler($exception) {
 		$class = get_class($exception);
-  		$out = "<b>Uncaught $class:</b> ".$exception->getMessage().
-			'<b> in '.$exception->getFile().' on line '.$exception->getLine().'</b>';
+  		$out = "$class: ".$exception->getMessage();
 
 		ob_start();
         debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
@@ -406,7 +444,7 @@ if(Setting::get('debug')) {
         $trace = preg_replace ('/^#0\s+' . __FUNCTION__ . "[^\n]*\n/", '', $trace, 1);
         ob_end_clean();
 
-        debug($out."\n".$trace, false, false);
+        debug_echo($out, $exception->getFile(), $exception->getLine(), $trace);
 	}
 
 	function error_handler($errno, $errstr, $errfile, $errline) {
@@ -504,6 +542,12 @@ if(empty($_GET['uri'])) {
 		public static function init() {
 			self::$string = $_GET['uri'];
 			self::$array = explode('/', trim($_GET['uri'], '/'));
+		}
+		public static function get($index) {
+			if(array_key_exists($index, self::$array)) {
+				return self::$array[$index];
+			}
+			return null;
 		}
 		public function __toString () {
 			return self::$string;
