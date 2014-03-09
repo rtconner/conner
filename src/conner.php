@@ -25,11 +25,19 @@ mb_internal_encoding( 'UTF-8' );
 define('DS', DIRECTORY_SEPARATOR);
 define('SP', ' ');
 
-if(!defined('KEY')) {
-	define('KEY', basename(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
-}
+define('ROOT', realpath(dirname(__FILE__).'../../../../..'));
 
-define('ETC', dirname(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))).DS.'etc');
+if(defined('PHPUNIT_COMPOSER_INSTALL')) {
+	define('KEY', 'tests');
+} else {
+	if(!defined('KEY')) {
+		define('KEY', basename(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
+	}
+}
+	
+define('ETC', ROOT.DS.'etc');
+define('LIB', ROOT.DS.'lib');
+define('MODELS', ROOT.DS.'models');
 
 define('MINUTE', 60);
 define('HOUR', 3600);
@@ -171,7 +179,7 @@ function ip_address() {
  */
 function lib($name) {
 	$name = str_replace('/', DS, $name);
-print LIB.DS.$name.'.php';
+	
 	if(file_exists(LIB.DS.$name.'.php')) {
 		require_once(LIB.DS.$name.'.php');
 	} elseif(file_exists(LIB.DS.$name.DS.$name.'.php')) {
@@ -181,8 +189,8 @@ print LIB.DS.$name.'.php';
 	} elseif(file_exists(LIB.DS.$name.'.phar')) {
 		require_once(LIB.DS.$name.'.phar');
 	} else {
-		echo "$name";
-// 		throw new Exception('Count Not Find Library "'.$name.'"');
+		echo 'Could Not Find Library "'.$name.'"'."\n";
+// 		throw new Exception('Could Not Find Library "'.$name.'"');
 	}
 }
 
@@ -324,10 +332,6 @@ if(file_exists(ETC.DS.'config.'.KEY.'.php')) {
 	require(ETC.DS.'config.'.KEY.'.php');
 }
 
-if (!defined('ROOT')) {
-	define('ROOT', dirname(dirname(dirname($_SERVER["SCRIPT_FILENAME"]))));
-}
-
 /**
  * Prefix will be used for elements, loaders, and layouts folders
  */
@@ -344,17 +348,11 @@ if(!defined('ELEMENTS'))
 if(!defined('LAYOUTS'))
 	define('LAYOUTS', ROOT.DS.KEY.DS.'layouts'.$prefix);
 
-if(!defined('LIB'))
-	define('LIB', ROOT.DS.'lib');
-
 if(!defined('LOADERS'))
 	define('LOADERS', ROOT.DS.KEY.DS.'loaders'.$prefix);
 
 if(!defined('EHANDLERS'))
 	define('EHANDLERS', ROOT.DS.KEY.DS.'ehandlers'.$prefix);
-
-if(!defined('MODELS'))
-	define('MODELS', ROOT.DS.'models');
 
 if($IS_CLI) {
 	ignore_user_abort(true);
