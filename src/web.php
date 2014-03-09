@@ -76,7 +76,7 @@ function elem($path, $params=array(), $options=array()) {
 
 		try {
 			$params = elem_loader($path, $params);
-		} catch (FrameworkException $e) {
+		} catch (ConnerException $e) {
 
 		}
 
@@ -106,7 +106,7 @@ function elem($path, $params=array(), $options=array()) {
 		$WEB_ELEM_PARAMS[$WEB_ELEM_LEVEL] = array();
 	    $WEB_ELEM_LEVEL--;
     } else {
-    	throw new FrameworkException('Element "'.$elemFile.' Not Found');
+    	throw new ConnerException('Element "'.$elemFile.' Not Found');
     }
 
 	if($options['cache']) {
@@ -140,7 +140,7 @@ function elem_loader() {
 			$__params = array_merge($__params, $data);
 		}
     } else {
-// 		throw new FrameworkException('Loader Not Found : '.$__loadFile);
+// 		throw new ConnerException('Loader Not Found : '.$__loadFile);
     }
 
     return $__params;
@@ -155,7 +155,7 @@ function elem_file($___file, $___params) {
 	}
 
 	if(!file_exists($___file)) {
-    	throw new FrameworkException('Element File "'.$___file.'" Does Not Exist');
+    	throw new ConnerException('Element File "'.$___file.'" Does Not Exist');
 	}
 
 	return include $___file;
@@ -177,7 +177,7 @@ function elem_layout($name, $content, $params) {
 	$file = LAYOUTS.DS.$name.'.ctp';
 
 	if(!file_exists($file)) {
-    	throw new FrameworkException('Layout "'.$file.'" Does Not Exist');
+    	throw new ConnerException('Layout "'.$file.'" Does Not Exist');
 	}
 
 	ob_start();
