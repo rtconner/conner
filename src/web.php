@@ -206,8 +206,8 @@ function force_ssl() {
  */
 function flash($message=null, $url=null, $type=false) {
 	if(is_null($message)) {
-		$ret = @$_SESSION['FRAMEWORK_FLASH'];
-		unset($_SESSION['FRAMEWORK_FLASH']);
+		$ret = @$_SESSION['CONNER_FLASH'];
+		unset($_SESSION['CONNER_FLASH']);
 		return $ret;
 	}
 
@@ -222,7 +222,7 @@ function flash($message=null, $url=null, $type=false) {
 		$url = url();
 	}
 
-	$_SESSION['FRAMEWORK_FLASH'] = array('message'=>$message, 'type'=>$type);
+	$_SESSION['CONNER_FLASH'] = array('message'=>$message, 'type'=>$type);
 
 	if($url !== null && $url !== false) {
 		redirect($url);
