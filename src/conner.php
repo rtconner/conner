@@ -25,7 +25,7 @@ mb_internal_encoding( 'UTF-8' );
 define('DS', DIRECTORY_SEPARATOR);
 define('SP', ' ');
 
-define('ROOT', realpath(dirname(__FILE__).'../../../../..'));
+define('ROOT', realpath(dirname(__FILE__).DS.'..'.DS.'..'.DS.'..'.DS.'..'.DS));
 
 if(defined('PHPUNIT_COMPOSER_INSTALL')) {
 	define('KEY', 'tests');
@@ -540,8 +540,8 @@ if(empty($_GET['uri'])) {
 		public static $string;
 		public static $array;
 		public static function init() {
-			self::$string = $_GET['uri'];
-			self::$array = explode('/', trim($_GET['uri'], '/'));
+			self::$string = strtolower($_GET['uri']);
+			self::$array = array_map('strtolower', explode('/', trim($_GET['uri'], '/')));
 		}
 		public static function get($index) {
 			if(array_key_exists($index, self::$array)) {
