@@ -40,7 +40,11 @@ use RecursiveDirectoryIterator;
  * @param $value null to fetch, any other value to set
  */
 function file($key, $value=null, $seconds=HOUR) {
-	if(Setting::get('Cache.disable')) {
+	try {
+		if(Setting::get('Cache.disable')) {
+			return null;
+		}
+	} catch(\Exception $e) {
 		return null;
 	}
 

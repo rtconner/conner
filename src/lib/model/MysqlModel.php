@@ -76,7 +76,7 @@ abstract class MysqlModel {
 			if($data) {
 				return $data;
 			}
-		} catch (FrameworkException $e) {}
+		} catch (ConnerException $e) {}
 
 		return $defaults;
 	}
@@ -162,7 +162,7 @@ abstract class MysqlModel {
 			}
 	        $result->free();
 		} else {
-			throw new \FrameworkException($qs);
+			throw new ConnerException($qs);
 		}
         return $return;
 	}
@@ -234,7 +234,7 @@ abstract class MysqlModel {
 	 */
 	function schema() {
 		if(empty($this->table)) {
-			throw new FrameworkException('Unknown table for schema in model '.get_class($this));
+			throw new ConnerException('Unknown table for schema in model '.get_class($this));
 		}
 
 		if(empty($this->schema)) {
@@ -308,7 +308,7 @@ function mysqli_connection() {
 	$MYSQLI_CONNECTION = new mysqli(Setting::get('Mysql.host'), Setting::get('Mysql.user'), Setting::get('Mysql.pass'), Setting::get('Mysql.db'));
 
 	if (mysqli_connect_errno()) {
-    	throw new FrameworkException("Connect failed: %s\n". mysqli_connect_error());
+    	throw new ConnerException("Connect failed: %s\n". mysqli_connect_error());
     	exit();
 	}
 
