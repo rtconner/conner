@@ -30,7 +30,7 @@ function do_404($type='html') {
 	header("HTTP/1.0 404 Not Found");
 
 	if($type == 'html') {
-		echo '404 Error Page NOT FOUND';
+		echo elem('404');
 	}
 
 	die;
