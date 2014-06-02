@@ -13,17 +13,17 @@ use Setting;
 function do_404($type='html') {
 	switch($type) {
 		case 'text':
-			header('Content-Type: text/plain; charset='.strtolower(ENCODING));
+			header('Content-Type: text/plain; charset='.strtolower(Setting::get('encoding')));
 			break;
 		case 'xml':
-  			header('Content-Type: text/xml; charset='.strtolower(ENCODING));
+  			header('Content-Type: text/xml; charset='.strtolower(Setting::get('encoding')));
 			break;
 		case 'json':
-			header('Content-Type: application/json; charset='.strtolower(ENCODING));
+			header('Content-Type: application/json; charset='.strtolower(Setting::get('encoding')));
 			break;
 		case 'html':
 		default:
-  			header('Content-Type: text/html; charset='.strtolower(ENCODING));
+  			header('Content-Type: text/html; charset='.strtolower(Setting::get('encoding')));
 			break;
 	}
 
